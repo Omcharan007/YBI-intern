@@ -1,0 +1,76 @@
+1.Import Libraries and Load Data
+
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Flatten
+from tensorflow.keras.utils import to_categorical
+
+# Load the MNIST dataset
+(train_images, train_labels), (test_images, test_labels) = mnist.load_data()
+
+# Print the shapes of the datasets
+print(f'Train images shape: {train_images.shape}')
+print(f'Test images shape: {test_images.shape}')
+
+2. Preprocess Data
+# Normalize the images
+train_images = train_images / 255.0
+test_images = test_images / 255.0
+
+# Convert labels to one-hot encoding
+train_labels = to_categorical(train_labels)
+test_labels = to_categorical(test_labels)
+
+3.Build the Model
+model = Sequential([
+    Flatten(input_shape=(28, 28)),
+    Dense(128, activation='relu'),
+    Dense(64, activation='relu'),
+    Dense(10, activation='softmax')
+])
+
+# Compile the model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Print the model summary
+model.summary()
+
+4.Train the Model
+history = model.fit(train_images, train_labels, epochs=10, validation_split=0.2)
+
+5.Evaluate the Mode
+test_loss, test_acc = model.evaluate(test_images, test_labels)
+print(f'Test accuracy: {test_acc}')
+
+6.Make Predictions
+# Make predictions on the test images
+predictions = model.predict(test_images)
+
+# Function to plot the results
+def plot_image(i, predictions_array, true_label, img):
+    predictions_array, true_label, img = predictions_array[i], true_label[i], img[i]
+    plt.grid(False)
+    plt.xticks([])
+    plt.yticks([])
+    plt.imshow(img, cmap=plt.cm.binary)
+    
+    predicted_label = np.argmax(predictions_array)
+    if predicted_label == np.argmax(true_label):
+        color = 'blue'
+    else:
+        color = 'red'
+    
+    plt.xlabel(f'{predicted_label} ({100 * np.max(predictions_array):2.0f}%)', color=color)
+
+# Plot a few predictions
+num_rows, num_cols = 5, 5
+num_images = num_rows * num_cols
+plt.figure(figsize=(2 * num_cols, 2 * num_rows))
+for i in range(num_images):
+    plt.subplot(num_rows, num_cols, i + 1)
+    plot_image(i, predictions, test_labels, test_images)
+plt.tight_layout()
+plt.show()
